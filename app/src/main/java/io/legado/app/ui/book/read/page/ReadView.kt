@@ -44,6 +44,7 @@ import io.legado.app.utils.throttle
 import java.text.BreakIterator
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * 阅读视图
@@ -111,6 +112,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
     private val upProgressThrottle = throttle(200) { post { upProgress() } }
     val autoPager = AutoPager(this)
     val isAutoPage get() = autoPager.isRunning
+    private var mouseWheelScrollRemainder = 0f
 
     init {
         addView(nextPage)
@@ -702,6 +704,25 @@ class ReadView(context: Context, attrs: AttributeSet) :
     fun onPageChange() {
         autoPager.reset()
         submitRenderTask()
+    }
+
+    fun scrollByMouseWheel(axisValue: Float): Boolean {
+        if (!isScroll || axisValue == 0f) {
+            return false
+        }
+        val lineHeight = (ChapterProvider.contentPaintTextHeight * ChapterProvider.lineSpacingExtra)
+            .takeIf { it > 0f }
+            ?: (ChapterProvider.visibleHeight / 12f)
+        val maxStep = (ChapterProvider.visibleHeight / 4f).coerceAtLeast(1f)
+        val scrollStep = (lineHeight * 3f).coerceIn(1f, maxStep)
+        val offsetFloat = axisValue * scrollStep + mouseWheelScrollRemainder
+        val offset = offsetFloat.roundToInt()
+        mouseWheelScrollRemainder = offsetFloat - offset
+        if (offset != 0) {
+            (pageDelegate as? ScrollPageDelegate)?.scrollByMouseWheel(offset)
+                ?: curPage.scroll(offset)
+        }
+        return true
     }
 
     fun submitRenderTask() {

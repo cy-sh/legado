@@ -20,6 +20,20 @@ class ScrollPageDelegate(readView: ReadView) : PageDelegate(readView) {
 
     var noAnim: Boolean = false
 
+    fun scrollByMouseWheel(offset: Int) {
+        if (offset == 0) {
+            return
+        }
+        readView.onScrollAnimStart()
+        if (!scroller.isFinished) {
+            scroller.computeScrollOffset()
+            readView.setTouchPoint(scroller.currX.toFloat(), scroller.currY.toFloat(), false)
+            scroller.abortAnimation()
+        }
+        readView.setStartPoint(0f, 0f, false)
+        startScroll(0, 0, 0, offset, 80)
+    }
+
     override fun onAnimStart(animationSpeed: Int) {
         readView.onScrollAnimStart()
         //惯性滚动

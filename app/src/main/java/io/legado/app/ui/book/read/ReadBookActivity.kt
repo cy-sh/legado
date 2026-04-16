@@ -665,12 +665,19 @@ class ReadBookActivity : BaseReadBookActivity(),
                 val axisValue = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
                 LogUtils.d("onGenericMotionEvent", "axisValue = $axisValue")
                 // 获得垂直坐标上的滚动方向
-                if (axisValue < 0.0f) { // 滚轮向下滚
-                    mouseWheelPage(PageDirection.NEXT)
-                } else { // 滚轮向上滚
-                    mouseWheelPage(PageDirection.PREV)
+                if (AppConfig.mouseWheelPage) {
+                    if (axisValue < 0.0f) { // 滚轮向下滚
+                        mouseWheelPage(PageDirection.NEXT)
+                    } else { // 滚轮向上滚
+                        mouseWheelPage(PageDirection.PREV)
+                    }
+                } else if (!menuLayoutIsVisible
+                    && binding.readView.isScroll
+                    && binding.readView.scrollByMouseWheel(axisValue)
+                ) {
+                    return true
                 }
-                return true
+                return AppConfig.mouseWheelPage
             }
         }
         return super.onGenericMotionEvent(event)
